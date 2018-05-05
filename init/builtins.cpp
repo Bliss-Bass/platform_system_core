@@ -66,6 +66,8 @@
 
 using namespace std::literals::string_literals;
 
+using android::base::StringPrintf;
+
 #define chmod DO_NOT_USE_CHMOD_USE_FCHMODAT_SYMLINK_NOFOLLOW
 
 namespace android {
@@ -131,24 +133,44 @@ static int do_class_start(const std::vector<std::string>& args) {
          */
     ServiceManager::GetInstance().
         ForEachServiceInClass(args[1], [] (Service* s) { s->StartIfNotDisabled(); });
+
+    std::string prop_name = StringPrintf("class_start:%s", args[1].c_str());
+    if (prop_name.length() < PROP_NAME_MAX) {
+        ActionManager::GetInstance().QueueEventTrigger(prop_name);
+    }
     return 0;
 }
 
 static int do_class_stop(const std::vector<std::string>& args) {
     ServiceManager::GetInstance().
         ForEachServiceInClass(args[1], [] (Service* s) { s->Stop(); });
+
+    std::string prop_name = StringPrintf("class_stop:%s", args[1].c_str());
+    if (prop_name.length() < PROP_NAME_MAX) {
+        ActionManager::GetInstance().QueueEventTrigger(prop_name);
+    }
     return 0;
 }
 
 static int do_class_reset(const std::vector<std::string>& args) {
     ServiceManager::GetInstance().
         ForEachServiceInClass(args[1], [] (Service* s) { s->Reset(); });
+
+    std::string prop_name = StringPrintf("class_reset:%s", args[1].c_str());
+    if (prop_name.length() < PROP_NAME_MAX) {
+        ActionManager::GetInstance().QueueEventTrigger(prop_name);
+    }
     return 0;
 }
 
 static int do_class_restart(const std::vector<std::string>& args) {
     ServiceManager::GetInstance().
         ForEachServiceInClass(args[1], [] (Service* s) { s->Restart(); });
+
+    std::string prop_name = StringPrintf("class_restart:%s", args[1].c_str());
+    if (prop_name.length() < PROP_NAME_MAX) {
+        ActionManager::GetInstance().QueueEventTrigger(prop_name);
+    }
     return 0;
 }
 
@@ -889,6 +911,18 @@ static int do_installkey(const std::vector<std::string>& args) {
     return do_exec(exec_args);
 }
 
+static int do_install_keyring(const std::vector<std::string>& args) {
+    if (e4crypt_install_keyring()) {
+        PLOG(ERROR) << "Failed to install keyring";
+        return -1;
+    }
+
+    property_set("ro.crypto.state", "encrypted");
+    property_set("ro.crypto.type", "file");
+
+    return 0;
+}
+
 static int do_init_user0(const std::vector<std::string>& args) {
     std::vector<std::string> exec_args = {"exec", "/system/bin/vdc", "--wait", "cryptfs",
                                           "init_user0"};
@@ -916,6 +950,7 @@ const BuiltinFunctionMap::Map& BuiltinFunctionMap::map() const {
         {"ifup",                    {1,     1,    do_ifup}},
         {"init_user0",              {0,     0,    do_init_user0}},
         {"insmod",                  {1,     kMax, do_insmod}},
+        {"install_keyring",         {0,     0,    do_install_keyring}},
         {"installkey",              {1,     1,    do_installkey}},
         {"load_persist_props",      {0,     0,    do_load_persist_props}},
         {"load_system_props",       {0,     0,    do_load_system_props}},

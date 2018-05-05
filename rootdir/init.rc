@@ -10,6 +10,7 @@ import /init.${ro.hardware}.rc
 import /vendor/etc/init/hw/init.${ro.hardware}.rc
 import /init.usb.configfs.rc
 import /init.${ro.zygote}.rc
+import /init.custom.rc
 
 on early-init
     # Set init and its forked children's oom_adj.
@@ -155,6 +156,7 @@ on init
     mkdir /dev/cpuctl
     mount cgroup none /dev/cpuctl cpu
     chown system system /dev/cpuctl
+    chmod 0660 /dev/cpuctl
     chown system system /dev/cpuctl/tasks
     chmod 0666 /dev/cpuctl/tasks
     write /dev/cpuctl/cpu.rt_period_us 1000000
@@ -736,3 +738,4 @@ on property:ro.debuggable=1
 service flash_recovery /system/bin/install-recovery.sh
     class main
     oneshot
+    disabled

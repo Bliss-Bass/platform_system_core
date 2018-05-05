@@ -177,7 +177,7 @@ int adbd_main(int server_port) {
     drop_privileges(server_port);
 
     bool is_usb = false;
-    if (access(USB_FFS_ADB_EP0, F_OK) == 0) {
+    if (access(USB_ADB_PATH, F_OK) == 0 || access(USB_FFS_ADB_EP0, F_OK) == 0) {
         // Listen on USB.
         usb_init();
         is_usb = true;
@@ -211,6 +211,8 @@ int adbd_main(int server_port) {
     return 0;
 }
 
+int recovery_mode = 0;
+
 int main(int argc, char** argv) {
     while (true) {
         static struct option opts[] = {
@@ -241,6 +243,8 @@ int main(int argc, char** argv) {
             return 1;
         }
     }
+
+    recovery_mode = (strcmp(adb_device_banner, "recovery") == 0);
 
     close_stdin();
 

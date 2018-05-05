@@ -201,6 +201,10 @@ int  local_connect_arbitrary_ports(int console_port, int adb_port, std::string* 
 
 ConnectionState connection_state(atransport *t);
 
+#if !ADB_HOST
+extern int recovery_mode;
+#endif
+
 extern const char* adb_device_banner;
 
 #if !ADB_HOST
@@ -210,6 +214,8 @@ extern int SHELL_EXIT_NOTIFY_FD;
 #define CHUNK_SIZE (64*1024)
 
 #if !ADB_HOST
+#define USB_ADB_PATH     "/dev/android_adb"
+
 #define USB_FFS_ADB_PATH  "/dev/usb-ffs/adb/"
 #define USB_FFS_ADB_EP(x) USB_FFS_ADB_PATH#x
 
